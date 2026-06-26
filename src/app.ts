@@ -3,11 +3,9 @@ import "dotenv/config";
 import express from "express";
 import dotenv from "dotenv";
 import { useExpressServer } from "routing-controllers";
-
 import morgan from "morgan";
 import corsOptions from "./config/corsOptions";
 import { setupSwagger } from "./config/swagger";
-import { UserController } from "./api/v1/controllers/user.controller";
 
 const app = express();
 
