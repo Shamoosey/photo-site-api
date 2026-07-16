@@ -7,12 +7,19 @@ import { successResponse } from "../models/responseModel";
 @Controller("/photo-collection")
 export class PhotoCollectionController {
   @Get()
-  async getAllPhotoCollections(@Req() req: Request, @Res() res: Response) {}
-
-  @Get(":id")
-  async getPhotoCollection(@Param("id") id: string, @Req() req: Request, @Res() res: Response) {
+  async getAllPhotoCollections(@Req() req: Request, @Res() res: Response) {
     try {
-      const collection = await PhotoCollectionService.fetchCollectionById(id);
+      const collection = await PhotoCollectionService.fetchAllCollections();
+      res.status(200).json(successResponse(collection, "Photo collections retreived successfully"));
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  @Get("/:name")
+  async getPhotoCollectionByName(@Param("name") name: string, @Req() req: Request, @Res() res: Response) {
+    try {
+      const collection = await PhotoCollectionService.fetchCollectionByIdOrName(undefined, name);
       res.status(200).json(successResponse(collection, "Photo collection retreived successfully"));
     } catch (error) {
       throw error;

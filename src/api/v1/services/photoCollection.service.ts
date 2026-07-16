@@ -22,7 +22,7 @@ export const createCollection = async (
   const collection = await prisma.$transaction(async (tx) => {
     const newCollection = await tx.collection.create({
       data: {
-        name,
+        name: name.toLowerCase(),
         description,
       },
     });
@@ -42,7 +42,7 @@ export const createCollection = async (
     return newCollection;
   });
 
-  return await fetchCollectionById(collection.id);
+  return await fetchCollectionByIdOrName(collection.id);
 };
 
 export const editCollection = async (
@@ -60,7 +60,7 @@ export const editCollection = async (
 
   await prisma.$transaction(async (tx) => {
     await tx.collection.update({
-      data: { name, description },
+      data: { name: name.toLowerCase(), description },
       where: { id: collectionId },
     });
 
@@ -81,7 +81,7 @@ export const editCollection = async (
     }
   });
 
-  return await fetchCollectionById(collectionId);
+  return await fetchCollectionByIdOrName(collectionId);
 };
 
 export const deleteCollection = async (collectionId: string): Promise<void> => {
@@ -112,11 +112,22 @@ export const fetchAllCollections = async (): Promise<ImageCollectionDTO[]> => {
   return collections.map((x) => ({ ...x, images: x.imageCollection.map((y) => ({ ...y.image }) as ImageDTO) }));
 };
 
-export const fetchCollectionById = async (collectionId: string): Promise<ImageCollectionDTO> => {
+export const fetchCollectionByIdOrName = async (
+  collectionId?: string,
+  collectionName?: string,
+): Promise<ImageCollectionDTO> => {
   const collection = await prisma.collection.findFirstOrThrow({
     where: {
-      id: collectionId,
+      OR: [
+        {
+          id: collectionId,
+        },
+        {
+          name: collectionName?.toLowerCase(),
+        },
+      ],
     },
+
     include: {
       imageCollection: {
         include: {
