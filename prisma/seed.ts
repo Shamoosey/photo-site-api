@@ -1,5 +1,4 @@
 import prisma from "./client";
-import { CollectionName } from "../src/api/v1/types/CollectionName";
 
 const unsplashPool = [
   "https://images.unsplash.com/photo-1506744038136-46273834b3fb",
@@ -69,52 +68,21 @@ const captions = [
 async function main() {
   console.log("🌱 Starting seed...");
 
-  // Clean existing data (respects FK order)
-  await prisma.imageCollection.deleteMany();
   await prisma.image.deleteMany();
-  await prisma.collection.deleteMany();
 
-  const collectionsData = [
-    {
-      name: CollectionName.Home,
-      description: "Scenic views, mountains, and far-off places worth remembering.",
-    },
-    {
-      name: "Urban & Architecture",
-      description: "City streets, skylines, and structural details.",
-    },
-    {
-      name: "Minimal & Abstract",
-      description: "Clean compositions, textures, and abstract visual moments.",
-    },
-  ];
+  const imageCount = randomInt(10, 20);
+  const pickedUrls = shuffle(unsplashPool).slice(0, imageCount);
 
-  for (const data of collectionsData) {
-    const collection = await prisma.collection.create({ data });
-    console.log(`📁 Created collection: ${collection.name}`);
-
-    const imageCount = randomInt(10, 20);
-    const pickedUrls = shuffle(unsplashPool).slice(0, imageCount);
-
-    for (const baseUrl of pickedUrls) {
-      const image = await prisma.image.create({
-        data: {
-          imageUrl: buildImageUrl(baseUrl),
-          cloudinaryId: randomCloudinaryId(),
-          caption: captions[randomInt(0, captions.length - 1)],
-          metaData: "unsplash seeded image",
-        },
-      });
-
-      await prisma.imageCollection.create({
-        data: {
-          collectionId: collection.id,
-          imageId: image.id,
-        },
-      });
-    }
-
-    console.log(`   ↳ Added ${imageCount} images to "${collection.name}"`);
+  for (const baseUrl of pickedUrls) {
+    const image = await prisma.image.create({
+      data: {
+        imageUrl: buildImageUrl(baseUrl),
+        cloudinaryId: randomCloudinaryId(),
+        caption: captions[randomInt(0, captions.length - 1)],
+        metaData: "unsplash seeded image",
+      },
+    });
+    console.log(`Added ${imageCount} images"`);
   }
 
   console.log("✅ Seed complete!");

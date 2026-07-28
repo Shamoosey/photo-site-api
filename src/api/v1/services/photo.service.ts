@@ -25,20 +25,6 @@ export const createPhoto = async (imageBase64: string, caption?: string, metaDat
   return newImage;
 };
 
-export const editPhotoData = async (imageId: string, caption?: string, metaData?: string): Promise<ImageDTO> => {
-  const edited = await prisma.image.update({
-    data: {
-      caption,
-      metaData,
-    },
-    where: {
-      id: imageId,
-    },
-  });
-
-  return edited;
-};
-
 export const deletePhoto = async (imageId: string): Promise<void> => {
   const image = await prisma.image.findFirst({
     where: {

@@ -15,28 +15,4 @@ model Image {
   metaData      String?
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
-
-  imageCollection ImageCollection[]      
-}
-
-model ImageCollection {
-  id              String @id @default(uuid())
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-  
-  collectionId    String
-  collection      Collection @relation(fields: collectionId, references: [id], onDelete: Cascade)  
-
-  imageId         String
-  image           Image @relation(fields: imageId, references: [id], onDelete: Cascade)
-}
-
-model Collection {
-  id              String @id @default(uuid())
-  name            String @unique 
-  description     String
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-
-  imageCollection ImageCollection[]
 }
