@@ -1,7 +1,7 @@
 import "reflect-metadata";
 import { Request, Response } from "express";
 import * as PhotoService from "../services/photo.service";
-import { Controller, Delete, Get, Param, Post, Req, Res } from "routing-controllers";
+import { Controller, Delete, Get, Param, Post, Put, Req, Res } from "routing-controllers";
 import { successResponse } from "../models/responseModel";
 import { getAuth } from "@clerk/express";
 
@@ -12,6 +12,16 @@ export class PhotoController {
     try {
       const photos = await PhotoService.fetchAllPhotos();
       return res.status(200).json(successResponse(photos, "All photos retrieved successfully"));
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  @Put()
+  async editPhotoData(@Req() req: Request, @Res() res: Response) {
+    try {
+      const photo = await PhotoService.editPhotoData(req.body);
+      return res.status(200).json(successResponse(photo, "Photo data updated successfully"));
     } catch (error) {
       throw error;
     }

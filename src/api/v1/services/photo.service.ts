@@ -41,3 +41,27 @@ export const deletePhoto = async (imageId: string): Promise<void> => {
     });
   }
 };
+
+export const editPhotoData = async (imageId: string, caption?: string, metaData?: string): Promise<ImageDTO> => {
+  const image = await prisma.image.findFirst({
+    where: {
+      id: imageId,
+    },
+  });
+
+  if (!image) {
+    throw new Error("Image not found");
+  }
+
+  const updatedImage = await prisma.image.update({
+    where: {
+      id: imageId,
+    },
+    data: {
+      caption,
+      metaData,
+    },
+  });
+
+  return updatedImage;
+};

@@ -11,8 +11,8 @@ model Image {
   id            String @id @default(uuid())
   imageUrl      String
   cloudinaryId  String
-  caption       String?
-  metaData      String?
+  caption       String
+  metaData      String
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 }
