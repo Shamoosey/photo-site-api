@@ -6,6 +6,7 @@ import { useExpressServer } from "routing-controllers";
 import morgan from "morgan";
 import corsOptions from "./config/corsOptions";
 import { setupSwagger } from "./config/swagger";
+import { clerkMiddleware } from "@clerk/express";
 
 const app = express();
 
@@ -13,6 +14,8 @@ app.use(express.json({ limit: "15mb" }));
 app.use(express.urlencoded({ extended: true, limit: "15mb" }));
 
 app.use(morgan(process.env.NODE_ENV === "production" ? "combined" : "dev"));
+
+app.use(clerkMiddleware());
 
 useExpressServer(app, {
   routePrefix: "/api/v1",
