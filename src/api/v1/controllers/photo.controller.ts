@@ -17,10 +17,10 @@ export class PhotoController {
     }
   }
 
-  @Put()
-  async editPhotoData(@Req() req: Request, @Res() res: Response) {
+  @Put("/:id")
+  async editPhotoData(@Param("id") id: string, @Req() req: Request, @Res() res: Response) {
     try {
-      const photo = await PhotoService.editPhotoData(req.body);
+      const photo = await PhotoService.editPhotoData(id, req.body.caption, req.body.metaData);
       return res.status(200).json(successResponse(photo, "Photo data updated successfully"));
     } catch (error) {
       throw error;
