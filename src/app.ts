@@ -7,6 +7,7 @@ import morgan from "morgan";
 import corsOptions from "./config/corsOptions";
 import { setupSwagger } from "./config/swagger";
 import { clerkMiddleware } from "@clerk/express";
+import { PhotoController } from "./api/v1/controllers/photo.controller";
 
 const app = express();
 
@@ -19,7 +20,7 @@ app.use(clerkMiddleware());
 
 useExpressServer(app, {
   routePrefix: "/api/v1",
-  controllers: [__dirname + "/api/v1/controllers/*.ts"],
+  controllers: [PhotoController],
   cors: corsOptions,
 });
 
