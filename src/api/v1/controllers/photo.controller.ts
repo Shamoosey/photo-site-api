@@ -20,7 +20,11 @@ export class PhotoController {
   @Put("/:id")
   async editPhotoData(@Param("id") id: string, @Req() req: Request, @Res() res: Response) {
     try {
-      const photo = await PhotoService.editPhotoData(id, req.body.caption, req.body.metaData);
+      const { userId } = getAuth(req);
+      if (!userId) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+      const photo = await PhotoService.editPhotoData(id, req.body.caption, req.body.metaData, req.body.sortOrder);
       return res.status(200).json(successResponse(photo, "Photo data updated successfully"));
     } catch (error) {
       throw error;
@@ -34,8 +38,8 @@ export class PhotoController {
       if (!userId) {
         return res.status(401).json({ message: "Unauthorized" });
       }
-      const { imageBase64, metaData, caption } = req.body;
-      const photo = await PhotoService.createPhoto(imageBase64, caption, metaData);
+      const { imageBase64, metaData, caption, sortOrder } = req.body;
+      const photo = await PhotoService.createPhoto(imageBase64, caption, metaData, sortOrder);
       return res.status(200).json(successResponse(photo, "New photo created successfully"));
     } catch (error) {
       throw error;

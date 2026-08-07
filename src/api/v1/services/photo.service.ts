@@ -6,12 +6,23 @@ export const fetchAllPhotos = async (): Promise<ImageDTO[]> => {
   return await prisma.image.findMany();
 };
 
-export const createPhoto = async (imageBase64: string, caption?: string, metaData?: string): Promise<ImageDTO> => {
+export const createPhoto = async (
+  imageBase64: string,
+  caption: string,
+  metaData: string,
+  sortOrder: number,
+): Promise<ImageDTO> => {
   if (!imageBase64) {
     throw new Error("ImageBase64 is undefined, unable to upload image");
   }
 
   const result = await CloudinaryService.uploadImage(imageBase64);
+
+  const maxSortOrder = await prisma.image.aggregate({
+    _max: {
+      sortOrder: true,
+    },
+  });
 
   const newImage = await prisma.image.create({
     data: {
@@ -19,6 +30,7 @@ export const createPhoto = async (imageBase64: string, caption?: string, metaDat
       cloudinaryId: result.public_id,
       caption,
       metaData,
+      sortOrder: sortOrder == 0 ? (maxSortOrder._max.sortOrder ? maxSortOrder._max.sortOrder + 1 : 0) : sortOrder,
     },
   });
 
@@ -42,7 +54,12 @@ export const deletePhoto = async (imageId: string): Promise<void> => {
   }
 };
 
-export const editPhotoData = async (imageId: string, caption?: string, metaData?: string): Promise<ImageDTO> => {
+export const editPhotoData = async (
+  imageId: string,
+  caption: string,
+  metaData: string,
+  sortOrder: number,
+): Promise<ImageDTO> => {
   const image = await prisma.image.findFirst({
     where: {
       id: imageId,
@@ -59,6 +76,7 @@ export const editPhotoData = async (imageId: string, caption?: string, metaData?
     },
     data: {
       caption,
+      sortOrder,
       metaData,
     },
   });

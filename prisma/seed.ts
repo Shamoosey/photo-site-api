@@ -66,7 +66,7 @@ const captions = [
 ];
 
 async function main() {
-  console.log("🌱 Starting seed...");
+  console.log("Starting seed...");
 
   await prisma.image.deleteMany();
 
@@ -79,18 +79,18 @@ async function main() {
         imageUrl: buildImageUrl(baseUrl),
         cloudinaryId: randomCloudinaryId(),
         caption: captions[randomInt(0, captions.length - 1)],
+        sortOrder: randomInt(1, 100),
         metaData: "unsplash seeded image",
       },
     });
-    console.log(`Added ${imageCount} images"`);
   }
 
-  console.log("✅ Seed complete!");
+  console.log(`Added ${imageCount} images, seed complete!"`);
 }
 
 main()
   .catch((e) => {
-    console.error("❌ Seed failed:", e);
+    console.error("Seed failed:", e);
     process.exit(1);
   })
   .finally(async () => {
