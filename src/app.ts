@@ -20,7 +20,7 @@ app.use(clerkMiddleware());
 useExpressServer(app, {
   routePrefix: "/api/v1",
   controllers: [__dirname + "/api/v1/controllers/*.ts"],
-  cors: corsOptions,
+  // cors: corsOptions,
 });
 
 dotenv.config();
