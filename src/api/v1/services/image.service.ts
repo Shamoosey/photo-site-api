@@ -2,11 +2,15 @@ import { ImageDTO } from "../types/ImageDTO";
 import { CloudinaryService } from "./cloudinary.service";
 import prisma from "../../../../prisma/client";
 
-export const fetchAllPhotos = async (): Promise<ImageDTO[]> => {
-  return await prisma.image.findMany();
+export const getImageById = async (imageId: string): Promise<ImageDTO | null> => {
+  return await prisma.image.findFirst({
+    where: {
+      id: imageId,
+    },
+  });
 };
 
-export const createPhoto = async (
+export const createImage = async (
   imageBase64: string,
   caption: string,
   metaData: string,
@@ -37,7 +41,7 @@ export const createPhoto = async (
   return newImage;
 };
 
-export const deletePhoto = async (imageId: string): Promise<void> => {
+export const deleteImage = async (imageId: string): Promise<void> => {
   const image = await prisma.image.findFirst({
     where: {
       id: imageId,
@@ -54,7 +58,7 @@ export const deletePhoto = async (imageId: string): Promise<void> => {
   }
 };
 
-export const editPhotoData = async (
+export const editImageData = async (
   imageId: string,
   caption: string,
   metaData: string,

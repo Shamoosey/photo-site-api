@@ -16,4 +16,29 @@ model Image {
   sortOrder     Int @default(0)
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
+
+  albumImage    AlbumImage[]
+}
+
+model AlbumImage {
+  id            String @id @default(uuid())
+  createdAt     DateTime @default(now())
+  updateAt      DateTime @updatedAt
+  imageId       String
+  albumId       String
+
+  album         Album @relation(fields: [albumId], references:[id], onDelete: Cascade)
+  image         Image @relation(fields: [imageId], references: [id], onDelete: Cascade)
+}
+
+model Album {
+  id            String @id @default(uuid())
+  name          String
+  description   String
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  coverImageUrl String
+  coverImageCloudinaryId String
+
+  albumImage    AlbumImage[]
 }
