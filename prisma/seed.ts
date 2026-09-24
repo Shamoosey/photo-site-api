@@ -22,8 +22,35 @@ const unsplashPool = [
   "https://images.unsplash.com/photo-1454496522488-7a8e488e8606",
   "https://images.unsplash.com/photo-1520250497591-112f2f40a3f4",
   "https://images.unsplash.com/photo-1445307806294-bff7f67ff225",
-  "https://images.unsplash.com/photo-1501594907352-04cda38ebc29",
   "https://images.unsplash.com/photo-1483728642387-6c3bdd6c93e5",
+];
+
+const albumNames = ["Coastal Mornings", "City Wanderings", "Mountain Escapes", "Quiet Moments", "Autumn Textures"];
+
+const albumDescriptions: Record<string, string> = {
+  "Coastal Mornings": "Early light along the shoreline, salt air and slow tides.",
+  "City Wanderings": "Streets, angles, and the rhythm of urban life.",
+  "Mountain Escapes": "Thin air, wide views, and quiet trails.",
+  "Quiet Moments": "Small, still scenes worth pausing for.",
+  "Autumn Textures": "Warm color and changing light through the season.",
+};
+
+const captions = [
+  "Golden hour glow",
+  "Quiet morning light",
+  "Urban geometry",
+  "Wanderlust vibes",
+  "Textures of nature",
+  "Minimal composition",
+  "City after rain",
+  "Mountain air",
+  "Still life study",
+  "Ocean horizon",
+  "Streetlife candid",
+  "Warm tones",
+  "Cool blues",
+  "Architectural lines",
+  "Sunset silhouette",
 ];
 
 function buildImageUrl(baseUrl: string): string {
@@ -47,32 +74,21 @@ function randomInt(min: number, max: number): number {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
-const captions = [
-  "Golden hour glow",
-  "Quiet morning light",
-  "Urban geometry",
-  "Wanderlust vibes",
-  "Textures of nature",
-  "Minimal composition",
-  "City after rain",
-  "Mountain air",
-  "Still life study",
-  "Ocean horizon",
-  "Streetlife candid",
-  "Warm tones",
-  "Cool blues",
-  "Architectural lines",
-  "Sunset silhouette",
-];
-
 async function main() {
   console.log("Starting seed...");
 
+  // Clear existing data. AlbumImage rows cascade-delete when their
+  // parent Image/Album is removed, but we clear explicitly for clarity
+  // and correct ordering.
+  await prisma.albumImage.deleteMany();
+  await prisma.album.deleteMany();
   await prisma.image.deleteMany();
 
-  const imageCount = randomInt(10, 20);
-  const pickedUrls = shuffle(unsplashPool).slice(0, imageCount);
+  // --- Create a pool of standalone images ---
+  const imageCount = randomInt(15, 25);
+  const pickedUrls = shuffle([...unsplashPool, ...unsplashPool]).slice(0, imageCount);
 
+  const createdImages = [];
   for (const baseUrl of pickedUrls) {
     const image = await prisma.image.create({
       data: {
@@ -83,9 +99,48 @@ async function main() {
         metaData: "unsplash seeded image",
       },
     });
+    createdImages.push(image);
+  }
+  console.log(`Added ${createdImages.length} images.`);
+
+  // --- Create albums, each with a cover image and a handful of images ---
+  let albumImageLinkCount = 0;
+  let defaultAssigned = false;
+  for (const name of albumNames) {
+    const coverBaseUrl = unsplashPool[randomInt(0, unsplashPool.length - 1)];
+
+    const album = await prisma.album.create({
+      data: {
+        name,
+        defaultAlbum: !defaultAssigned,
+        description: albumDescriptions[name] ?? "A curated collection of photos.",
+        coverImageUrl: buildImageUrl(coverBaseUrl),
+        coverImageCloudinaryId: randomCloudinaryId(),
+      },
+    });
+
+    defaultAssigned = true;
+    // Assign a random subset of the existing images to this album
+    const shuffledImages = shuffle(createdImages);
+    const albumImageCount = randomInt(20, 60);
+    const imagesForAlbum = shuffledImages.slice(0, albumImageCount);
+
+    for (const image of imagesForAlbum) {
+      await prisma.albumImage.create({
+        data: {
+          albumId: album.id,
+          imageId: image.id,
+        },
+      });
+      albumImageLinkCount++;
+    }
+
+    console.log(`Created album "${name}" with ${imagesForAlbum.length} images.`);
   }
 
-  console.log(`Added ${imageCount} images, seed complete!"`);
+  console.log(
+    `Seed complete! ${createdImages.length} images, ${albumNames.length} albums, ${albumImageLinkCount} album-image links.`,
+  );
 }
 
 main()

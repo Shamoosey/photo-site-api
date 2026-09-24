@@ -32,6 +32,16 @@ export class AlbumController {
     }
   }
 
+  @Get("/:id")
+  async getAlbumById(@Param("id") albumId: string, @Req() req: Request, @Res() res: Response) {
+    try {
+      const album = await AlbumService.getAlbumById(albumId);
+      return res.status(200).json(successResponse(album, "Album successfully fetched"));
+    } catch (error) {
+      throw error;
+    }
+  }
+
   @Put("/:id")
   async editAlbum(@Param("id") albumId: string, @Req() req: Request, @Res() res: Response) {
     try {

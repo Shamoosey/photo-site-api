@@ -4,14 +4,15 @@ import * as ImageService from "../services/image.service";
 import { Controller, Delete, Get, Param, Post, Put, Req, Res } from "routing-controllers";
 import { successResponse } from "../models/responseModel";
 import { getAuth } from "@clerk/express";
+import { CreateImageDTO } from "../types/CreateImageDTO";
 
 @Controller("/image")
 export class ImageController {
-  @Get()
+  @Get("/:id")
   async getImageById(@Param("id") id: string, @Req() req: Request, @Res() res: Response) {
     try {
       const images = await ImageService.getImageById(id);
-      return res.status(200).json(successResponse(images, "All images retrieved successfully"));
+      return res.status(200).json(successResponse(images, "Image retrieved successfully"));
     } catch (error) {
       throw error;
     }
@@ -32,14 +33,29 @@ export class ImageController {
   }
 
   @Post()
+  async createImagesBulk(@Req() req: Request, @Res() res: Response) {
+    try {
+      const { userId } = getAuth(req);
+      if (!userId) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+      const createImages = req.body as CreateImageDTO[];
+      const image = await ImageService.createImagesBulk(createImages);
+      return res.status(200).json(successResponse(image, "New image created successfully"));
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  @Post()
   async createImage(@Req() req: Request, @Res() res: Response) {
     try {
       const { userId } = getAuth(req);
       if (!userId) {
         return res.status(401).json({ message: "Unauthorized" });
       }
-      const { imageBase64, metaData, caption, sortOrder } = req.body;
-      const image = await ImageService.createImage(imageBase64, caption, metaData, sortOrder);
+      const createImage = req.body as CreateImageDTO;
+      const image = await ImageService.createImage(createImage);
       return res.status(200).json(successResponse(image, "New image created successfully"));
     } catch (error) {
       throw error;

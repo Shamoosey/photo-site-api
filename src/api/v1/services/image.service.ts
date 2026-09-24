@@ -1,6 +1,7 @@
 import { ImageDTO } from "../types/ImageDTO";
 import { CloudinaryService } from "./cloudinary.service";
 import prisma from "../../../../prisma/client";
+import { CreateImageDTO } from "../types/CreateImageDTO";
 
 export const getImageById = async (imageId: string): Promise<ImageDTO | null> => {
   return await prisma.image.findFirst({
@@ -10,17 +11,35 @@ export const getImageById = async (imageId: string): Promise<ImageDTO | null> =>
   });
 };
 
-export const createImage = async (
-  imageBase64: string,
-  caption: string,
-  metaData: string,
-  sortOrder: number,
-): Promise<ImageDTO> => {
-  if (!imageBase64) {
+export const createImagesBulk = async (createImages: CreateImageDTO[]): Promise<ImageDTO> => {
+  // if (!imageBase64) {
+  //   throw new Error("ImageBase64 is undefined, unable to upload image");
+  // }
+  // const result = await CloudinaryService.uploadImage(imageBase64);
+  // const maxSortOrder = await prisma.image.aggregate({
+  //   _max: {
+  //     sortOrder: true,
+  //   },
+  // });
+  // const newImage = await prisma.image.create({
+  //   data: {
+  //     imageUrl: result.url,
+  //     cloudinaryId: result.public_id,
+  //     caption,
+  //     metaData: createImage.,
+  //     sortOrder: sortOrder == 0 ? (maxSortOrder._max.sortOrder ? maxSortOrder._max.sortOrder + 1 : 0) : sortOrder,
+  //   },
+  // });
+  // return newImage;
+  return {} as ImageDTO;
+};
+
+export const createImage = async (createImage: CreateImageDTO): Promise<ImageDTO> => {
+  if (!createImage.imageBase64) {
     throw new Error("ImageBase64 is undefined, unable to upload image");
   }
 
-  const result = await CloudinaryService.uploadImage(imageBase64);
+  const result = await CloudinaryService.uploadImage(createImage.imageBase64);
 
   const maxSortOrder = await prisma.image.aggregate({
     _max: {
@@ -32,9 +51,14 @@ export const createImage = async (
     data: {
       imageUrl: result.url,
       cloudinaryId: result.public_id,
-      caption,
-      metaData,
-      sortOrder: sortOrder == 0 ? (maxSortOrder._max.sortOrder ? maxSortOrder._max.sortOrder + 1 : 0) : sortOrder,
+      caption: createImage.caption,
+      metaData: createImage.metaData,
+      sortOrder:
+        createImage.sortOrder == 0
+          ? maxSortOrder._max.sortOrder
+            ? maxSortOrder._max.sortOrder + 1
+            : 0
+          : createImage.sortOrder,
     },
   });
 

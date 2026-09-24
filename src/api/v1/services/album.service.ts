@@ -1,4 +1,4 @@
-import prisma from "prisma/client";
+import prisma from "../../../../prisma/client";
 import { AlbumDTO } from "../types/AlbumDTO";
 import { CloudinaryService } from "./cloudinary.service";
 import { EditAlbumDTO } from "../types/EditAlbumDTO";
@@ -29,6 +29,17 @@ export const getImagesByAlbumId = async (albumId: string) => {
       ...x.image,
     };
   }) as ImageDTO[];
+};
+
+export const getAlbumById = async (id: string) => {
+  const album = await prisma.album.findFirstOrThrow({
+    where: {
+      id: id,
+    },
+  });
+  return {
+    ...album,
+  } as AlbumDTO;
 };
 
 export const getAllAlbums = async () => {

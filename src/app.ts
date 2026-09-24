@@ -8,6 +8,7 @@ import corsOptions from "./config/corsOptions";
 import { setupSwagger } from "./config/swagger";
 import { clerkMiddleware } from "@clerk/express";
 import { ImageController } from "./api/v1/controllers/image.controller";
+import { AlbumController } from "./api/v1/controllers/album.controller";
 
 const app = express();
 
@@ -20,7 +21,7 @@ app.use(clerkMiddleware());
 
 useExpressServer(app, {
   routePrefix: "/api/v1",
-  controllers: [ImageController],
+  controllers: [ImageController, AlbumController],
   cors: corsOptions,
 });
 
