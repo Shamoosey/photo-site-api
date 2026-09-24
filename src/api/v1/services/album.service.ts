@@ -121,12 +121,6 @@ export const editAlbum = async (albumId: string, editData: EditAlbumDTO) => {
         },
       });
 
-      if (editData.images.length > 0) {
-        await tx.albumImage.createMany({
-          data: editData.images.map((imageId) => ({ imageId, albumId: updated.id })),
-        });
-      }
-
       return updated;
     });
 
