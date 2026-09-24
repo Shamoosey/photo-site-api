@@ -115,12 +115,6 @@ export const editAlbum = async (albumId: string, editData: EditAlbumDTO) => {
         },
       });
 
-      await tx.albumImage.deleteMany({
-        where: {
-          albumId: updated.id,
-        },
-      });
-
       return updated;
     });
 
