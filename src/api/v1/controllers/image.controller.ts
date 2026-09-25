@@ -32,7 +32,7 @@ export class ImageController {
     }
   }
 
-  @Post()
+  @Post("/bulk")
   async createImagesBulk(@Req() req: Request, @Res() res: Response) {
     try {
       const { userId } = getAuth(req);
@@ -41,7 +41,7 @@ export class ImageController {
       }
       const createImages = req.body as CreateImageDTO[];
       const image = await ImageService.createImagesBulk(createImages);
-      return res.status(200).json(successResponse(image, "New image created successfully"));
+      return res.status(200).json(successResponse(image, "Bulk images created successfully"));
     } catch (error) {
       throw error;
     }

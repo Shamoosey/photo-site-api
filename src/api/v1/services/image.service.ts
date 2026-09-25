@@ -11,27 +11,62 @@ export const getImageById = async (imageId: string): Promise<ImageDTO | null> =>
   });
 };
 
-export const createImagesBulk = async (createImages: CreateImageDTO[]): Promise<ImageDTO> => {
-  // if (!imageBase64) {
-  //   throw new Error("ImageBase64 is undefined, unable to upload image");
-  // }
-  // const result = await CloudinaryService.uploadImage(imageBase64);
-  // const maxSortOrder = await prisma.image.aggregate({
-  //   _max: {
-  //     sortOrder: true,
-  //   },
-  // });
-  // const newImage = await prisma.image.create({
-  //   data: {
-  //     imageUrl: result.url,
-  //     cloudinaryId: result.public_id,
-  //     caption,
-  //     metaData: createImage.,
-  //     sortOrder: sortOrder == 0 ? (maxSortOrder._max.sortOrder ? maxSortOrder._max.sortOrder + 1 : 0) : sortOrder,
-  //   },
-  // });
-  // return newImage;
-  return {} as ImageDTO;
+export const createImagesBulk = async (createImages: CreateImageDTO[]): Promise<ImageDTO[]> => {
+  if (!createImages || createImages.length === 0) {
+    throw new Error("No images provided for bulk upload");
+  }
+
+  for (const img of createImages) {
+    if (!img.imageBase64) {
+      throw new Error("ImageBase64 is undefined, unable to upload image");
+    }
+  }
+
+  const uploadResults = await Promise.all(createImages.map((img) => CloudinaryService.uploadImage(img.imageBase64)));
+
+  const maxSortOrder = await prisma.image.aggregate({
+    _max: {
+      sortOrder: true,
+    },
+  });
+
+  let nextSortOrder = maxSortOrder._max.sortOrder != null ? maxSortOrder._max.sortOrder + 1 : 0;
+
+  try {
+    const newImages = await prisma.$transaction(
+      createImages.map((createImage, index) => {
+        const result = uploadResults[index];
+        const sortOrder =
+          createImage.sortOrder && createImage.sortOrder !== 0 ? createImage.sortOrder : nextSortOrder++;
+
+        return prisma.image.create({
+          data: {
+            imageUrl: result.url,
+            cloudinaryId: result.public_id,
+            caption: createImage.caption,
+            metaData: createImage.metaData,
+            sortOrder,
+            ...(createImage.albumId
+              ? {
+                  albumImage: {
+                    create: {
+                      albumId: createImage.albumId,
+                    },
+                  },
+                }
+              : {}),
+          },
+        });
+      }),
+    );
+
+    return newImages;
+  } catch (error) {
+    await Promise.all(
+      uploadResults.map((result) => CloudinaryService.deleteImage(result.public_id).catch(() => undefined)),
+    );
+    throw error;
+  }
 };
 
 export const createImage = async (createImage: CreateImageDTO): Promise<ImageDTO> => {
