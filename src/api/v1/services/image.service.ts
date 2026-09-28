@@ -16,14 +16,6 @@ export const createImagesBulk = async (createImages: CreateImageDTO[]): Promise<
     throw new Error("No images provided for bulk upload");
   }
 
-  for (const img of createImages) {
-    if (!img.imageBase64) {
-      throw new Error("ImageBase64 is undefined, unable to upload image");
-    }
-  }
-
-  const uploadResults = await Promise.all(createImages.map((img) => CloudinaryService.uploadImage(img.imageBase64)));
-
   const maxSortOrder = await prisma.image.aggregate({
     _max: {
       sortOrder: true,
@@ -35,14 +27,13 @@ export const createImagesBulk = async (createImages: CreateImageDTO[]): Promise<
   try {
     const newImages = await prisma.$transaction(
       createImages.map((createImage, index) => {
-        const result = uploadResults[index];
         const sortOrder =
           createImage.sortOrder && createImage.sortOrder !== 0 ? createImage.sortOrder : nextSortOrder++;
 
         return prisma.image.create({
           data: {
-            imageUrl: result.url,
-            cloudinaryId: result.public_id,
+            imageUrl: createImage.imageUrl,
+            cloudinaryId: createImage.imageId,
             caption: createImage.caption,
             metaData: createImage.metaData,
             sortOrder,
@@ -62,20 +53,11 @@ export const createImagesBulk = async (createImages: CreateImageDTO[]): Promise<
 
     return newImages;
   } catch (error) {
-    await Promise.all(
-      uploadResults.map((result) => CloudinaryService.deleteImage(result.public_id).catch(() => undefined)),
-    );
     throw error;
   }
 };
 
 export const createImage = async (createImage: CreateImageDTO): Promise<ImageDTO> => {
-  if (!createImage.imageBase64) {
-    throw new Error("ImageBase64 is undefined, unable to upload image");
-  }
-
-  const result = await CloudinaryService.uploadImage(createImage.imageBase64);
-
   const maxSortOrder = await prisma.image.aggregate({
     _max: {
       sortOrder: true,
@@ -84,8 +66,8 @@ export const createImage = async (createImage: CreateImageDTO): Promise<ImageDTO
 
   const newImage = await prisma.image.create({
     data: {
-      imageUrl: result.url,
-      cloudinaryId: result.public_id,
+      imageUrl: createImage.imageUrl,
+      cloudinaryId: createImage.imageId,
       caption: createImage.caption,
       metaData: createImage.metaData,
       sortOrder:
