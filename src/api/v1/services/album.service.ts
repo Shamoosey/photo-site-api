@@ -51,7 +51,7 @@ export const getAllAlbums = async () => {
   });
 };
 
-export const createAlbum = async (name: string, description: string, coverImageBase64: string, imageIds: string[]) => {
+export const createAlbum = async (name: string, description: string, coverImageBase64: string) => {
   if (!coverImageBase64) {
     throw new Error("coverImageBase64 is undefined, unable to upload image");
   }
@@ -68,12 +68,6 @@ export const createAlbum = async (name: string, description: string, coverImageB
           coverImageUrl: image.url,
         },
       });
-
-      if (imageIds.length > 0) {
-        await tx.albumImage.createMany({
-          data: imageIds.map((imageId) => ({ imageId, albumId: album.id })),
-        });
-      }
 
       return album;
     });
