@@ -18,8 +18,12 @@ export class CloudinaryService {
     publicId?: string,
   ): Promise<CloudinaryUploadResult> {
     try {
-      const result = await cloudinary.uploader.upload(imageBase64, {
-        folder: folder,
+      // Client sends raw base64 (no "data:" prefix). Cloudinary treats a bare
+      // string as a file path, so wrap it in a data URI.
+      const dataUri = imageBase64.startsWith("data:") ? imageBase64 : `data:image/jpeg;base64,${imageBase64}`;
+
+      const result = await cloudinary.uploader.upload(dataUri, {
+        folder,
         resource_type: "auto",
         transformation: [{ quality: "auto" }],
         ...(publicId && { public_id: publicId, overwrite: true }),
@@ -28,7 +32,17 @@ export class CloudinaryService {
       return result;
     } catch (error) {
       console.error("Cloudinary error details:", error);
-      throw new Error(`Cloudinary upload failed: ${error instanceof Error ? error.message : JSON.stringify(error)}`);
+      throw new Error(`Cloudinary upload failed: ${formatCloudinaryError(error)}`);
+    }
+    function formatCloudinaryError(error: unknown): string {
+      if (error instanceof Error) return error.message;
+      if (typeof error === "object" && error !== null) {
+        const e =
+          (error as { error?: { message?: string; code?: string } }).error ??
+          (error as { message?: string; code?: string });
+        return e.message ?? e.code ?? "Unknown Cloudinary error";
+      }
+      return String(error);
     }
   }
 
