@@ -9,11 +9,12 @@ import { setupSwagger } from "./config/swagger";
 import { clerkMiddleware } from "@clerk/express";
 import { ImageController } from "./api/v1/controllers/image.controller";
 import { AlbumController } from "./api/v1/controllers/album.controller";
+import { UploadController } from "./api/v1/controllers/upload.controller";
 
 const app = express();
 
-app.use(express.json({ limit: "15mb" }));
-app.use(express.urlencoded({ extended: true, limit: "15mb" }));
+app.use(express.json({ limit: "4.5mb" }));
+app.use(express.urlencoded({ extended: true, limit: "4.5mb" }));
 
 app.use(morgan(process.env.NODE_ENV === "production" ? "combined" : "dev"));
 
@@ -21,7 +22,7 @@ app.use(clerkMiddleware());
 
 useExpressServer(app, {
   routePrefix: "/api/v1",
-  controllers: [ImageController, AlbumController],
+  controllers: [ImageController, AlbumController, UploadController],
   cors: corsOptions,
 });
 

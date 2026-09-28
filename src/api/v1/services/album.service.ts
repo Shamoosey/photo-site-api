@@ -51,21 +51,15 @@ export const getAllAlbums = async () => {
   });
 };
 
-export const createAlbum = async (name: string, description: string, coverImageBase64: string) => {
-  if (!coverImageBase64) {
-    throw new Error("coverImageBase64 is undefined, unable to upload image");
-  }
-
-  const image = await CloudinaryService.uploadImage(coverImageBase64);
-
+export const createAlbum = async (name: string, description: string, coverImageUrl: string, coverImageId: string) => {
   try {
     const newAlbum = await prisma.$transaction(async (tx) => {
       const album = await tx.album.create({
         data: {
           name,
           description,
-          coverImageCloudinaryId: image.public_id,
-          coverImageUrl: image.url,
+          coverImageCloudinaryId: coverImageId,
+          coverImageUrl: coverImageUrl,
         },
       });
 
@@ -74,7 +68,6 @@ export const createAlbum = async (name: string, description: string, coverImageB
 
     return { ...newAlbum } as AlbumDTO;
   } catch (err) {
-    await CloudinaryService.deleteImage(image.public_id);
     throw err;
   }
 };
@@ -90,11 +83,6 @@ export const editAlbum = async (albumId: string, editData: EditAlbumDTO) => {
     throw new Error(`Album does not exist with ID: ${albumId}`);
   }
 
-  let newImage = null;
-  if (editData.coverImageBase64) {
-    newImage = await CloudinaryService.uploadImage(editData.coverImageBase64);
-  }
-
   try {
     const editedAlbum = await prisma.$transaction(async (tx) => {
       const updated = await tx.album.update({
@@ -104,45 +92,48 @@ export const editAlbum = async (albumId: string, editData: EditAlbumDTO) => {
         data: {
           name: editData.name,
           description: editData.description,
-          coverImageUrl: newImage !== null ? newImage.url : album.coverImageUrl,
-          coverImageCloudinaryId: newImage !== null ? newImage.public_id : album.coverImageCloudinaryId,
+          coverImageUrl: editData.coverImageUrl,
+          coverImageCloudinaryId: editData.coverImageId,
         },
       });
 
       return updated;
     });
 
-    if (newImage !== null) {
-      await CloudinaryService.deleteImage(album.coverImageCloudinaryId);
-    }
-
     return { ...editedAlbum } as AlbumDTO;
   } catch (err) {
-    if (newImage !== null) {
-      await CloudinaryService.deleteImage(newImage.public_id);
-    }
     throw err;
   }
 };
 
-export const deleteAlbum = async (albumId: string) => {
-  const album = await prisma.album.findFirst({
-    where: {
-      id: albumId,
+export async function deleteAlbum(albumId: string) {
+  const album = await prisma.album.findUnique({
+    where: { id: albumId },
+    include: {
+      albumImage: {
+        include: { image: true },
+      },
     },
   });
 
-  if (album) {
-    await prisma.albumImage.deleteMany({
-      where: {
-        albumId: albumId,
-      },
-    });
-    CloudinaryService.deleteImage(album.coverImageCloudinaryId);
-    await prisma.album.delete({
-      where: {
-        id: albumId,
-      },
-    });
-  }
-};
+  if (!album) return;
+
+  const images = album.albumImage.map((ai) => ai.image).filter((img) => img != null);
+
+  const cloudinaryResults = await Promise.allSettled([
+    CloudinaryService.deleteImage(album.coverImageCloudinaryId),
+    ...images.map((img) => CloudinaryService.deleteImage(img.cloudinaryId)),
+  ]);
+
+  cloudinaryResults.forEach((result, i) => {
+    if (result.status === "rejected") {
+      console.error(`Failed to delete Cloudinary asset (index ${i}) for album ${albumId}:`, result.reason);
+    }
+  });
+
+  await prisma.$transaction([
+    prisma.albumImage.deleteMany({ where: { albumId } }),
+    prisma.image.deleteMany({ where: { id: { in: images.map((img) => img.id) } } }),
+    prisma.album.delete({ where: { id: albumId } }),
+  ]);
+}
