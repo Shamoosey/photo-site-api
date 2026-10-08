@@ -94,7 +94,7 @@ export const editAlbum = async (albumId: string, editData: EditAlbumDTO) => {
           description: editData.description,
           coverImageUrl: editData.coverImageUrl,
           coverImageCloudinaryId: editData.coverImageId,
-          sortOrder: editData.sortOrder,
+          sortOrder: Number.parseInt(editData.sortOrder ?? "0"),
         },
       });
 
