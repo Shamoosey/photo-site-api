@@ -24,8 +24,8 @@ export class AlbumController {
       if (!userId) {
         return res.status(401).json({ message: "Unauthorized" });
       }
-      const { name, description, coverImageUrl, coverImageId } = req.body;
-      const album = await AlbumService.createAlbum(name, description, coverImageUrl, coverImageId);
+      const { name, description, coverImageUrl, coverImageId, isDraft } = req.body;
+      const album = await AlbumService.createAlbum(name, description, coverImageUrl, coverImageId, isDraft);
       return res.status(201).json(successResponse(album, "New album created successfully"));
     } catch (error) {
       throw error;
