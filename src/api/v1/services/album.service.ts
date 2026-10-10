@@ -51,7 +51,13 @@ export const getAllAlbums = async () => {
   });
 };
 
-export const createAlbum = async (name: string, description: string, coverImageUrl: string, coverImageId: string) => {
+export const createAlbum = async (
+  name: string,
+  description: string,
+  coverImageUrl: string,
+  coverImageId: string,
+  isDraft: boolean,
+) => {
   try {
     const newAlbum = await prisma.$transaction(async (tx) => {
       const album = await tx.album.create({
@@ -60,6 +66,7 @@ export const createAlbum = async (name: string, description: string, coverImageU
           description,
           coverImageCloudinaryId: coverImageId,
           coverImageUrl: coverImageUrl,
+          isDraft: isDraft,
         },
       });
 
@@ -91,6 +98,7 @@ export const editAlbum = async (albumId: string, editData: EditAlbumDTO) => {
         },
         data: {
           name: editData.name,
+          isDraft: editData.isDraft,
           description: editData.description,
           coverImageUrl: editData.coverImageUrl,
           coverImageCloudinaryId: editData.coverImageId,

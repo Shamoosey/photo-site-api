@@ -37,6 +37,7 @@ model Album {
   description   String
   defaultAlbum  Boolean @default(false)
   sortOrder     Int @default(0)
+  isDraft       Boolean @default(false)
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
   coverImageUrl String

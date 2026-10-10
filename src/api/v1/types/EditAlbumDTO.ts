@@ -3,5 +3,6 @@ export interface EditAlbumDTO {
   description?: string;
   coverImageUrl?: string;
   coverImageId?: string;
+  isDraft?: boolean;
   sortOrder?: string;
 }
