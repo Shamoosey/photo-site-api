@@ -1,6 +1,6 @@
 import { ImageDTO } from "../types/ImageDTO";
-import { CloudinaryService } from "./cloudinary.service";
 import prisma from "../../../../prisma/client";
+import { SpacesService } from "./spaces.service";
 import { CreateImageDTO } from "../types/CreateImageDTO";
 
 export const getImageById = async (imageId: string): Promise<ImageDTO | null> => {
@@ -33,7 +33,7 @@ export const createImagesBulk = async (createImages: CreateImageDTO[]): Promise<
         return prisma.image.create({
           data: {
             imageUrl: createImage.imageUrl,
-            cloudinaryId: createImage.imageId,
+            publicId: createImage.imageId,
             caption: createImage.caption,
             metaData: createImage.metaData,
             sortOrder,
@@ -67,7 +67,7 @@ export const createImage = async (createImage: CreateImageDTO): Promise<ImageDTO
   const newImage = await prisma.image.create({
     data: {
       imageUrl: createImage.imageUrl,
-      cloudinaryId: createImage.imageId,
+      publicId: createImage.imageId,
       caption: createImage.caption,
       metaData: createImage.metaData,
       sortOrder:
@@ -90,7 +90,7 @@ export const deleteImage = async (imageId: string): Promise<void> => {
   });
 
   if (image) {
-    await CloudinaryService.deleteImage(image.cloudinaryId);
+    await SpacesService.deleteImage(image.publicId);
     await prisma.image.delete({
       where: {
         id: imageId,

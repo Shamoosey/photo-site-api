@@ -1,6 +1,6 @@
 import prisma from "../../../../prisma/client";
 import { AlbumDTO } from "../types/AlbumDTO";
-import { CloudinaryService } from "./cloudinary.service";
+import { SpacesService } from "./spaces.service";
 import { EditAlbumDTO } from "../types/EditAlbumDTO";
 import { ImageDTO } from "../types/ImageDTO";
 
@@ -64,7 +64,7 @@ export const createAlbum = async (
         data: {
           name,
           description,
-          coverImageCloudinaryId: coverImageId,
+          coverImagePublicId: coverImageId,
           coverImageUrl: coverImageUrl,
           isDraft: isDraft,
         },
@@ -101,7 +101,7 @@ export const editAlbum = async (albumId: string, editData: EditAlbumDTO) => {
           isDraft: editData.isDraft,
           description: editData.description,
           coverImageUrl: editData.coverImageUrl,
-          coverImageCloudinaryId: editData.coverImageId,
+          coverImagePublicId: editData.coverImageId,
           sortOrder: Number.parseInt(editData.sortOrder ?? "0"),
         },
       });
@@ -130,8 +130,8 @@ export async function deleteAlbum(albumId: string) {
   const images = album.albumImage.map((ai) => ai.image).filter((img) => img != null);
 
   const cloudinaryResults = await Promise.allSettled([
-    CloudinaryService.deleteImage(album.coverImageCloudinaryId),
-    ...images.map((img) => CloudinaryService.deleteImage(img.cloudinaryId)),
+    SpacesService.deleteImage(album.coverImagePublicId),
+    ...images.map((img) => SpacesService.deleteImage(img.publicId)),
   ]);
 
   cloudinaryResults.forEach((result, i) => {
