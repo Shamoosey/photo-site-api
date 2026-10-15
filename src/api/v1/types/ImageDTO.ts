@@ -1,7 +1,7 @@
 export interface ImageDTO {
   id: string;
   imageUrl: string;
-  cloudinaryId: string;
+  publicId: string;
   caption: string | null;
   metaData: string | null;
   createdAt: Date;
