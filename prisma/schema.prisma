@@ -10,7 +10,7 @@ datasource db {
 model Image {
   id            String @id @default(uuid())
   imageUrl      String
-  cloudinaryId  String
+  publicId  String
   caption       String
   metaData      String
   sortOrder     Int @default(0)
@@ -41,7 +41,7 @@ model Album {
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
   coverImageUrl String
-  coverImageCloudinaryId String
+  coverImagePublicId String
 
   albumImage    AlbumImage[]
 }
