@@ -90,6 +90,10 @@ export const editAlbum = async (albumId: string, editData: EditAlbumDTO) => {
     throw new Error(`Album does not exist with ID: ${albumId}`);
   }
 
+  if (album.coverImagePublicId != editData.coverImageId) {
+    await SpacesService.deleteImage(album.coverImagePublicId);
+  }
+
   try {
     const editedAlbum = await prisma.$transaction(async (tx) => {
       const updated = await tx.album.update({
